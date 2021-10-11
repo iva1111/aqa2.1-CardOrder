@@ -14,7 +14,6 @@ public class CardTest {
 
     @BeforeAll
     static void setUpAll() {
-        //System.setProperty("webdriver.chrome.driver", "C:\\Users\\User\\Documents\\Netology\\aqa2.1\\aqa2.1-CardOrder\\driver\\chromedriver.exe");
         WebDriverManager.chromedriver().setup();
     }
 
@@ -25,6 +24,7 @@ public class CardTest {
         options.addArguments("--no-sandbox");
         options.addArguments("--headless");
         driver = new ChromeDriver(options);
+        driver.get("http://localhost:9999");
     }
 
     @AfterEach
@@ -34,29 +34,67 @@ public class CardTest {
     }
 
     @Test
-    public void CardOrderTestV1() {
-        driver.get("http://localhost:9999");
+    public void shouldSendValidForm() {
         driver.findElement(By.cssSelector("[type='text']")).sendKeys("Иванова Анна");
         driver.findElement(By.cssSelector("[type='tel']")).sendKeys("+79021111111");
         driver.findElement(By.cssSelector(".checkbox__box")).click();
         driver.findElement(By.cssSelector("button")).click();
         String expectedMessage = "Ваша заявка успешно отправлена! Наш менеджер свяжется с вами в ближайшее время.";
-        String actualMessage = driver.findElement(By.cssSelector(".paragraph_theme_alfa-on-white")).getText();
-        assertEquals(expectedMessage, actualMessage.trim());
+        String actualText = driver.findElement(By.cssSelector(".paragraph_theme_alfa-on-white")).getText();
+        assertEquals(expectedMessage, actualText.trim());
     }
 
     @Test
-    public void CardOrderTestV2() {
-        driver.get("http://localhost:9999");
+    public void shouldGetErrorMessageIfNameNotRussian() {
         driver.findElement(By.cssSelector("[type='text']")).sendKeys("Ivanova Anna");
         driver.findElement(By.cssSelector("[type='tel']")).sendKeys("+79021111111");
         driver.findElement(By.cssSelector(".checkbox__box")).click();
         driver.findElement(By.cssSelector("button")).click();
         String expectedMessage = "Имя и Фамилия указаные неверно. Допустимы только русские буквы, пробелы и дефисы.";
-        String actualMessage = driver.findElement(By.cssSelector("[data-test-id = name] .input__sub")).getText();
-        assertEquals(expectedMessage, actualMessage.trim());
+        String actualText= driver.findElement(By.cssSelector("[data-test-id=name] .input__sub")).getText();
+        assertEquals(expectedMessage, actualText.trim());
     }
 
+    @Test
+    public void shouldGetErrorMessageIfPhoneNumberIsIncorrect() {
+        driver.findElement(By.cssSelector("[type='text']")).sendKeys("Иванова Анна");
+        driver.findElement(By.cssSelector("[type='tel']")).sendKeys("1111111");
+        driver.findElement(By.cssSelector(".checkbox__box")).click();
+        driver.findElement(By.cssSelector("button")).click();
+        String expectedText = "Телефон указан неверно. Должно быть 11 цифр, например, +79012345678.";
+        String actualText = driver.findElement(By.cssSelector("[data-test-id=phone] .input__sub")).getText();
+        assertEquals(expectedText, actualText.trim());
+    }
+
+    @Test
+    public void shouldGetErrorMessageIfEmptyFieldOfName() {
+        driver.findElement(By.cssSelector("[type='text']")).sendKeys("");
+        driver.findElement(By.cssSelector("[type='tel']")).sendKeys("79021111111");
+        driver.findElement(By.cssSelector(".checkbox__box")).click();
+        driver.findElement(By.cssSelector("button")).click();
+        String expectedText = "Поле обязательно для заполнения";
+        String actualText = driver.findElement(By.cssSelector("[data-test-id=name] .input__sub")).getText();
+        assertEquals(expectedText, actualText.trim());
+    }
+
+    @Test
+    public void shouldGetErrorMessageIfEmptyFieldOfPhoneNumber() {
+        driver.findElement(By.cssSelector("[type='text']")).sendKeys("Иванова Анна");
+        driver.findElement(By.cssSelector("[type='tel']")).sendKeys("");
+        driver.findElement(By.cssSelector(".checkbox__box")).click();
+        driver.findElement(By.cssSelector("button")).click();
+        String expectedText = "Поле обязательно для заполнения";
+        String actualText = driver.findElement(By.cssSelector("[data-test-id=phone] .input__sub")).getText();
+        assertEquals(expectedText, actualText.trim());
+    }
+
+    @Test
+    public void shouldShowErrorWithoutAgreementInCheckBox() {
+        driver.findElement(By.cssSelector("[type='text']")).sendKeys("Иванова Анна");
+        driver.findElement(By.cssSelector("[type='tel']")).sendKeys("+79021111111");
+        driver.findElement(By.cssSelector("button")).click();
+        driver.findElement(By.cssSelector(".input_invalid"));
+    }
 
 
 }
